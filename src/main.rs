@@ -1,12 +1,13 @@
 //! Rewind — TUI for Replay.
 
 use anyhow::Result;
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, Paragraph};
+
+use rewind::input::{poll_input, InputEvent};
 
 fn main() -> Result<()> {
     enable_raw_mode()?;
@@ -25,9 +26,10 @@ fn run(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> Result<()>
     loop {
         terminal.draw(|frame| ui(frame))?;
 
-        if let Event::Key(key) = event::read()? {
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
-                return Ok(());
+        if let Some(event) = poll_input()? {
+            match event {
+                InputEvent::Quit => return Ok(()),
+                _ => {}
             }
         }
     }
