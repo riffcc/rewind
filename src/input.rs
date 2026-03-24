@@ -137,26 +137,6 @@ fn key_to_input(code: KeyCode) -> InputEvent {
     }
 }
 
-/// Poll for input events from both keyboard and gamepad.
-/// Returns the input event if one is available, or None if no input is pending.
-pub fn poll_input() -> Result<Option<InputEvent>> {
-    static mut INPUT_MANAGER: Option<InputManager> = None;
-
-    // SAFETY: This is single-threaded initialization and access.
-    // In a TUI application, input is handled from a single event loop thread,
-    // so there's no data race risk.
-    unsafe {
-        if INPUT_MANAGER.is_none() {
-            INPUT_MANAGER = InputManager::new().ok();
-        }
-
-        if let Some(ref mut manager) = INPUT_MANAGER {
-            manager.poll()
-        } else {
-            Ok(None)
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

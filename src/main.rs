@@ -7,14 +7,15 @@ use crossterm::terminal::{
 use ratatui::prelude::*;
 use ratatui::widgets::{Block, Borders, Paragraph};
 
-use rewind::input::{poll_input, InputEvent};
+use rewind::input::{InputEvent, InputManager};
 
 fn main() -> Result<()> {
     enable_raw_mode()?;
     crossterm::execute!(std::io::stdout(), EnterAlternateScreen)?;
     let mut terminal = Terminal::new(CrosstermBackend::new(std::io::stdout()))?;
 
-    let result = run(&mut terminal);
+    let mut input = InputManager::new()?;
+    let result = run(&mut terminal, &mut input);
 
     disable_raw_mode()?;
     crossterm::execute!(std::io::stdout(), LeaveAlternateScreen)?;
@@ -22,11 +23,14 @@ fn main() -> Result<()> {
     result
 }
 
-fn run(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> Result<()> {
+fn run(
+    terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
+    input: &mut InputManager,
+) -> Result<()> {
     loop {
         terminal.draw(|frame| ui(frame))?;
 
-        if let Some(event) = poll_input()? {
+        if let Some(event) = input.poll()? {
             match event {
                 InputEvent::Quit => return Ok(()),
                 _ => {}
@@ -64,7 +68,7 @@ fn ui(frame: &mut Frame) {
     frame.render_widget(body, layout[1]);
 
     // Footer
-    let footer = Paragraph::new(" q: quit ")
+    let footer = Paragraph::new(" q: quit | arrows/hjkl: navigate | enter: select | esc: back | gamepad: connected ")
         .style(Style::default().fg(Color::DarkGray))
         .block(Block::default().borders(Borders::TOP));
     frame.render_widget(footer, layout[2]);
